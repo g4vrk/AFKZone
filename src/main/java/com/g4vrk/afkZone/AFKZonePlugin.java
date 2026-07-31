@@ -107,7 +107,7 @@ public final class AFKZonePlugin extends JavaPlugin {
                     onTick.run(
                             player,
                             s -> s
-                                    .replace("{entry}", player.getName())
+                                    .replace("{player}", player.getName())
                                     .replace("{remaining-seconds}", String.valueOf(remainingSeconds))
                     );
                 }
@@ -131,7 +131,10 @@ public final class AFKZonePlugin extends JavaPlugin {
         final RandomRewardTask removed = taskMap.remove(player);
 
         if (removed != null) {
-            removed.terminate();
+            try {
+                removed.terminate();
+            } catch (final Exception ignored) {
+            }
         }
     }
 
