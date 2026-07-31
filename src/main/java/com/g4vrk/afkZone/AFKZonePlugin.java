@@ -101,6 +101,7 @@ public final class AFKZonePlugin extends JavaPlugin {
             @Override
             public void run() {
                 for (final Map.Entry<Player, RandomRewardTask> entry : taskMap.entrySet()) {
+
                     final Player player = entry.getKey();
                     final int remainingSeconds = entry.getValue().decreaseRemainingSeconds();
 

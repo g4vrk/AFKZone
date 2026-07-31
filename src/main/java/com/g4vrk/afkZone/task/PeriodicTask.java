@@ -19,19 +19,16 @@ public abstract class PeriodicTask extends BukkitRunnable {
 
     public void start() {
         try {
-            getTaskId();
-        } catch (final IllegalStateException ex) {
-            return;
+            super.runTaskTimer(plugin, period, period);
+        } catch (final Exception ignored) {
         }
-
-        super.runTaskTimer(plugin, period, period);
     }
 
     public void terminate() {
         super.cancel();
     }
 
-    public Plugin getPlugin() {
+    public @NotNull Plugin getPlugin() {
         return plugin;
     }
 
