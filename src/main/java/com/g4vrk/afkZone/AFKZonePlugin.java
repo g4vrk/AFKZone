@@ -1,6 +1,7 @@
 package com.g4vrk.afkZone;
 
 import com.g4vrk.afkZone.listener.EntryListener;
+import com.g4vrk.afkZone.task.PeriodicTask;
 import com.g4vrk.afkZone.task.RandomRewardTask;
 import com.g4vrk.afkZone.util.ProbabilityCollection;
 import com.g4vrk.fastTextFormatter.TextFormatter;
@@ -23,7 +24,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -33,7 +33,7 @@ public final class AFKZonePlugin extends JavaPlugin {
 
     private final TextFormatter textFormatter = TextFormatter.textFormatter();
 
-    private final Map<UUID, RandomRewardTask> taskMap = new Object2ObjectOpenHashMap<>();
+    private final Map<Player, RandomRewardTask> taskMap = new Object2ObjectOpenHashMap<>();
 
     private long taskPeriod;
     private ProbabilityCollection<BiConsumer<Player, Function<String, String>>> rewards;
@@ -63,9 +63,11 @@ public final class AFKZonePlugin extends JavaPlugin {
 
         final List<String> zoneEnterActions;
         final List<String> zoneLeaveActions;
+        final List<String> zoneTickActions;
         try {
             zoneEnterActions = mainConfig.node("zone", "actions", "on-enter").getList(String.class, Collections.emptyList());
             zoneLeaveActions = mainConfig.node("zone", "actions", "on-leave").getList(String.class, Collections.emptyList());
+            zoneTickActions = mainConfig.node("zone", "actions", "on-tick").getList(String.class, Collections.emptyList());
         } catch (final SerializationException ex) {
             throw new RuntimeException(ex);
         }
@@ -93,13 +95,32 @@ public final class AFKZonePlugin extends JavaPlugin {
             rewards.add(actions::run, Double.parseDouble(String.valueOf(o)));
         });
 
+        final ExecutableActionList<? super Player> onTick = actionParser.parseAll(zoneTickActions);
+        new PeriodicTask(this, 20) {
+
+            @Override
+            public void run() {
+                for (final Map.Entry<Player, RandomRewardTask> entry : taskMap.entrySet()) {
+                    final Player player = entry.getKey();
+                    final int remainingSeconds = entry.getValue().decreaseRemainingSeconds();
+
+                    onTick.run(
+                            player,
+                            s -> s
+                                    .replace("{entry}", player.getName())
+                                    .replace("{remaining-seconds}", String.valueOf(remainingSeconds))
+                    );
+                }
+            }
+        }.start();
+
         taskPeriod = mainConfig.node("zone", "rewards", "task-period-seconds").getLong(60) * 20L;
     }
 
     private void startTask(
             final @NotNull Player player
     ) {
-        final RandomRewardTask task = taskMap.computeIfAbsent(player.getUniqueId(), uuid -> new RandomRewardTask(this, taskPeriod, player, () -> rewards.get()));
+        final RandomRewardTask task = taskMap.computeIfAbsent(player, uuid -> new RandomRewardTask(this, taskPeriod, player, () -> rewards.get()));
 
         task.start();
     }
@@ -107,7 +128,7 @@ public final class AFKZonePlugin extends JavaPlugin {
     private void terminateTask(
             final @NotNull Player player
     ) {
-        final RandomRewardTask removed = taskMap.remove(player.getUniqueId());
+        final RandomRewardTask removed = taskMap.remove(player);
 
         if (removed != null) {
             removed.terminate();

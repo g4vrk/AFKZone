@@ -13,6 +13,8 @@ public class RandomRewardTask extends PeriodicTask {
     private final Player player;
     private final Supplier<BiConsumer<Player, Function<String, String>>> rewardGenerator;
 
+    private int remainingSeconds;
+
     public RandomRewardTask(
             @NotNull Plugin plugin,
             long period,
@@ -22,6 +24,15 @@ public class RandomRewardTask extends PeriodicTask {
         super(plugin, period);
         this.player = player;
         this.rewardGenerator = rewardGenerator;
+        this.resetRemainingSeconds();
+    }
+
+    public int decreaseRemainingSeconds() {
+        return this.remainingSeconds--;
+    }
+
+    private void resetRemainingSeconds() {
+        this.remainingSeconds = (int) (getPeriod() / 20);
     }
 
     @Override

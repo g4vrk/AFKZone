@@ -31,6 +31,14 @@ public abstract class PeriodicTask extends BukkitRunnable {
         super.cancel();
     }
 
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    public long getPeriod() {
+        return period;
+    }
+
     @Override
     public abstract void run();
 }

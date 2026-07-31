@@ -6,6 +6,9 @@ zone:
       - '[message] <green>Вы вошли в AFK-зону.'
       - '[bar] <yellow>Награды начисляются автоматически.'
 
+    on-tick:
+      - '[message] {remaining-seconds}'
+
     on-leave:
       - '[message] <red>Вы покинули AFK-зону.'
       - '[bar] <red>Вы больше не получаете награды.'
