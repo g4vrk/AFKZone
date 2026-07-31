@@ -2,6 +2,7 @@ package com.g4vrk.afkZone;
 
 import com.g4vrk.afkZone.listener.EntryListener;
 import com.g4vrk.afkZone.task.RandomRewardTask;
+import com.g4vrk.afkZone.util.ProbabilityCollection;
 import com.g4vrk.fastTextFormatter.TextFormatter;
 import com.g4vrk.functionalActions.defaults.DefaultActions;
 import com.g4vrk.functionalActions.list.ExecutableActionList;
@@ -11,17 +12,18 @@ import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
-import io.leangen.geantyref.TypeToken;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -31,7 +33,10 @@ public final class AFKZonePlugin extends JavaPlugin {
 
     private final TextFormatter textFormatter = TextFormatter.textFormatter();
 
-    private final Set<Player> rewardReceivers = new ObjectOpenHashSet<>();
+    private final Map<UUID, RandomRewardTask> taskMap = new Object2ObjectOpenHashMap<>();
+
+    private long taskPeriod;
+    private ProbabilityCollection<BiConsumer<Player, Function<String, String>>> rewards;
 
     @Override
     public void onEnable() {
@@ -69,39 +74,44 @@ public final class AFKZonePlugin extends JavaPlugin {
                 zoneRegionId::equalsIgnoreCase,
                 actionParser.parseAll(zoneEnterActions),
                 actionParser.parseAll(zoneLeaveActions),
-                rewardReceivers::add,
-                rewardReceivers::remove
+                this::startTask,
+                this::terminateTask
         );
 
         getServer().getPluginManager().registerEvents(listener, this);
 
-        final Set<BiConsumer<Player, Function<String, String>>> rewards = new ObjectOpenHashSet<>();
+        rewards = new ProbabilityCollection<>();
 
-        final List<List<String>> rewardsRaw;
-        try {
+        mainConfig.node("zone", "rewards", "actions").childrenMap().forEach((o, node) -> {
+            final ExecutableActionList<? super Player> actions;
+            try {
+                actions = actionParser.parseAll(node.getList(String.class, Collections.emptyList()));
+            } catch (final SerializationException ex) {
+                throw new RuntimeException(ex);
+            }
 
-            final TypeToken<List<List<String>>> listOfString = new TypeToken<>() {};
+            rewards.add(actions::run, Double.parseDouble(String.valueOf(o)));
+        });
 
-            rewardsRaw = mainConfig.node("zone", "rewards", "actions").get(listOfString);
-
-        } catch (final SerializationException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        if (rewardsRaw == null) return;
-
-        for (List<String> list : rewardsRaw) {
-            final ExecutableActionList<? super Player> actions = actionParser.parseAll(list);
-
-            rewards.add(actions::run);
-        }
-
-        final long taskPeriod = mainConfig.node("zone", "rewards", "task-period-seconds").getLong(60) * 20L;
-        new RandomRewardTask(this, taskPeriod, rewards, () -> rewardReceivers).start();
+        taskPeriod = mainConfig.node("zone", "rewards", "task-period-seconds").getLong(60) * 20L;
     }
 
-    @Override
-    public void onDisable() {
-        getServer().getScheduler().cancelTasks(this);
+    private void startTask(
+            final @NotNull Player player
+    ) {
+        final RandomRewardTask task = taskMap.computeIfAbsent(player.getUniqueId(), uuid -> new RandomRewardTask(this, taskPeriod, player, () -> rewards.get()));
+
+        task.start();
     }
+
+    private void terminateTask(
+            final @NotNull Player player
+    ) {
+        final RandomRewardTask removed = taskMap.remove(player.getUniqueId());
+
+        if (removed != null) {
+            removed.terminate();
+        }
+    }
+
 }

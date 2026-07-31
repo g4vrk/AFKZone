@@ -14,18 +14,15 @@ zone:
     task-period-seconds: 30
 
     actions:
-      -
+      # НЕЛЬЗЯ ДЕЛАТЬ ОДИНАКОВЫЕ ШАНСЫ!!!
+      32.9:
         - '[message] <gold>Вы получили 100 монет!'
-        - '[cmd] eco give %player_name% 100'
+        - '[cmd] eco give {player} 100'
 
-      -
+      33.1:
         - '[message] <green>Вы получили 1 токен!'
-        - '[cmd] p give %player_name% 1'
+        - '[cmd] p give {player} 1'
 
-      -
+      34.0:
         - '[message] <aqua>Вы получили 3 алмаза!'
-        - '[cmd] give %player_name% diamond 3'
-
-      -
-        - '[message] <yellow>Вы получили 16 опыта!'
-        - '[cmd] xp add %player_name% 16 levels'
+        - '[cmd] give {player} diamond 3'
