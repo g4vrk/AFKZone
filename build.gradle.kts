@@ -15,8 +15,8 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
 
     compileOnly("net.raidstone:WorldGuardEvents:1.18.1")
-    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.13")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.13")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.0")
 
     implementation("com.g4vrk:FunctionalActions:2.0.0")
     implementation("com.g4vrk:FastTextFormatter:1.0.0")
@@ -25,7 +25,7 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
 tasks {
