@@ -96,7 +96,7 @@ public final class AFKZonePlugin extends JavaPlugin {
         }
 
         final long taskPeriod = mainConfig.node("zone", "rewards", "task-period-seconds").getLong(60) * 20L;
-        new RandomRewardTask(this, taskPeriod, rewards, () -> rewardReceivers);
+        new RandomRewardTask(this, taskPeriod, rewards, () -> rewardReceivers).start();
     }
 
     @Override
