@@ -1,0 +1,31 @@
+zone:
+  region-id: "afk_zone-region"
+
+  actions:
+    on-enter:
+      - '[message] <green>Вы вошли в AFK-зону.'
+      - '[bar] <yellow>Награды начисляются автоматически.'
+
+    on-leave:
+      - '[message] <red>Вы покинули AFK-зону.'
+      - '[bar] <red>Вы больше не получаете награды.'
+
+  rewards:
+    task-period-seconds: 30
+
+    actions:
+      -
+        - '[message] <gold>Вы получили 100 монет!'
+        - '[cmd] eco give %player_name% 100'
+
+      -
+        - '[message] <green>Вы получили 1 токен!'
+        - '[cmd] p give %player_name% 1'
+
+      -
+        - '[message] <aqua>Вы получили 3 алмаза!'
+        - '[cmd] give %player_name% diamond 3'
+
+      -
+        - '[message] <yellow>Вы получили 16 опыта!'
+        - '[cmd] xp add %player_name% 16 levels'

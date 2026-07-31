@@ -1,0 +1,12 @@
+name: AFKZone
+version: '${version}'
+
+main: com.g4vrk.afkZone.AFKZonePlugin
+api-version: '1.18'
+load: POSTWORLD
+
+authors: [ g4vrk ]
+website: https://github.com/g4vrk
+depend:
+  - WorldGuard
+  - WorldGuardEvents
