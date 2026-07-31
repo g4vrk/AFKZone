@@ -6,18 +6,19 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class RandomRewardTask extends PeriodicTask {
 
-    private final ProbabilityCollection<Consumer<Player>> rewards;
+    private final ProbabilityCollection<BiConsumer<Player, Function<String, String>>> rewards;
     private final Supplier<Set<Player>> rewardReceiversSupplier;
 
     public RandomRewardTask(
             @NotNull Plugin plugin,
             long period,
-            @NotNull Set<Consumer<Player>> rewards,
+            @NotNull Set<BiConsumer<Player, Function<String, String>>> rewards,
             @NotNull Supplier<Set<Player>> rewardReceiversSupplier
     ) {
         super(plugin, period);
@@ -25,7 +26,7 @@ public class RandomRewardTask extends PeriodicTask {
         this.rewards = new ProbabilityCollection<>();
 
         final double chanceForAll = 100D / rewards.size();
-        for (final Consumer<Player> reward : rewards) {
+        for (final BiConsumer<Player, Function<String, String>> reward : rewards) {
             this.rewards.add(reward, chanceForAll);
         }
     }
@@ -33,7 +34,7 @@ public class RandomRewardTask extends PeriodicTask {
     @Override
     public void run() {
         for (final Player player : rewardReceiversSupplier.get()) {
-            rewards.get().accept(player);
+            rewards.get().accept(player, s -> s.replace("{player}", player.getName()));
         }
     }
 }

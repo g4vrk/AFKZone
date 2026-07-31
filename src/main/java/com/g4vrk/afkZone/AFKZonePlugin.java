@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public final class AFKZonePlugin extends JavaPlugin {
 
@@ -74,7 +75,7 @@ public final class AFKZonePlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(listener, this);
 
-        final Set<Consumer<Player>> rewards = new ObjectOpenHashSet<>();
+        final Set<BiConsumer<Player, Function<String, String>>> rewards = new ObjectOpenHashSet<>();
 
         final List<List<String>> rewardsRaw;
         try {
