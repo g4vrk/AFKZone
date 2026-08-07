@@ -38,5 +38,6 @@ public class RandomRewardTask extends PeriodicTask {
     @Override
     public void run() {
         rewardGenerator.get().accept(player, s -> s.replace("{player}", player.getName()));
+        resetRemainingSeconds();
     }
 }
